@@ -1,0 +1,322 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Container,
+  Grid,
+  Card,
+  CardContent,
+  CardMedia,
+  Typography,
+  Button,
+  TextField,
+  Box,
+  Chip,
+  CircularProgress,
+  Alert,
+} from '@mui/material';
+import { travelService } from '../services/api';
+import SearchIcon from '@mui/icons-material/Search';
+import { useNavigate } from 'react-router-dom';
+import ItineraryModal from '../components/ItineraryModal';
+
+// Add state for modal
+
+
+const TravelListings = () => {
+  const [listings, setListings] = useState([]);
+  const [filteredListings, setFilteredListings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
+    const [selectedTravel, setSelectedTravel] = useState(null);
+    const [modalOpen, setModalOpen] = useState(false);
+
+  useEffect(() => {
+    fetchListings();
+  }, []);
+
+  useEffect(() => {
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase().trim();
+      const filtered = (listings && Array.isArray(listings) ? listings : []).filter(listing => {
+        // Check all searchable fields
+        return (
+          (listing.title && listing.title.toLowerCase().includes(searchLower)) ||
+          (listing.description && listing.description.toLowerCase().includes(searchLower)) ||
+          (listing.country && listing.country.toLowerCase().includes(searchLower)) ||
+          (listing.location && listing.location.toLowerCase().includes(searchLower))
+        );
+      });
+      setFilteredListings(filtered);
+    } else {
+      setFilteredListings(listings && Array.isArray(listings) ? listings : []);
+    }
+  }, [searchTerm, listings]);
+
+  const fetchListings = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      console.log('Fetching travel listings...');
+      const response = await travelService.getAllListings();
+      
+      // Your data is a direct array
+      const data = response.data;
+      console.log('Received listings:', data.length);
+      
+      setListings(Array.isArray(data) ? data : []);
+      setFilteredListings(data);
+      
+    } catch (err) {
+      console.error('Failed to fetch listings:', err);
+      setError('Failed to load travel listings. Please try again later.');
+      setListings([]);
+      setFilteredListings([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const formatCurrency = (amount) => {
+    if (!amount) return 'Price not available';
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount)) return 'Invalid price';
+    
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2
+    }).format(numAmount);
+  };
+
+  const handleSearchSubmit = async (e) => {
+    e.preventDefault();
+    if (!searchTerm.trim()) return;
+    
+    try {
+      setLoading(true);
+      // If your backend has search endpoint
+      // const response = await travelService.searchListings(searchTerm);
+      // const data = response.data;
+      // setFilteredListings(data);
+      
+      // Client-side filtering already handled in useEffect
+    } catch (err) {
+      console.log('Server search failed, using client-side filtering');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+//   const handleViewDetails = (listing) => {
+//     console.log('View details for:', listing);
+//     alert(`Viewing details for: ${listing.title}\n\nTravel ID: ${listing.travelID}\nCountry: ${listing.country}\nPrice: ${formatCurrency(listing.price)}\nDuration: ${listing.travelPeriod}`);
+//   };
+
+  if (loading && listings.length === 0) {
+    return (
+      <Container sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <CircularProgress />
+        <Typography sx={{ ml: 2 }}>Loading travel listings...</Typography>
+      </Container>
+    );
+  }
+
+  return (
+    <Container maxWidth="lg">
+      <Box sx={{ my: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Travel Listings
+        </Typography>
+        
+        <Typography variant="subtitle1" color="text.secondary" paragraph>
+          Browse our collection of travel packages
+        </Typography>
+        
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
+        
+        <Box component="form" onSubmit={handleSearchSubmit} sx={{ mb: 4 }}>
+          <TextField
+            fullWidth
+            variant="outlined"
+            placeholder="Search by title, description, or country..."
+            value={searchTerm}
+            onChange={handleSearch}
+            InputProps={{
+              startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+            }}
+          />
+          <Button 
+            type="submit" 
+            variant="contained" 
+            sx={{ mt: 2 }}
+            disabled={!searchTerm.trim() || loading}
+          >
+            Search
+          </Button>
+          {searchTerm && (
+            <Button 
+              variant="outlined" 
+              sx={{ mt: 2, ml: 2 }}
+              onClick={() => {
+                setSearchTerm('');
+                setFilteredListings(listings);
+              }}
+              disabled={loading}
+            >
+              Clear Search
+            </Button>
+          )}
+        </Box>
+
+        <Grid container spacing={3}>
+          {(filteredListings && Array.isArray(filteredListings) ? filteredListings : []).map((listing) => (
+            <Grid item xs={12} sm={6} md={4} key={listing.travelID}>
+              <Card sx={{ 
+                height: '100%', 
+                display: 'flex', 
+                flexDirection: 'column',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: 3
+                }
+              }}>
+                <CardMedia
+                  component="img"
+                  height="200"
+                  image={
+                    listing.imageURL && listing.imageURL !== 'null' 
+                      ? (() => {
+                          // Handle different imageURL formats
+                          try {
+                            const url = JSON.parse(listing.imageURL);
+                            return Array.isArray(url) && url.length > 0 
+                              ? url[0] 
+                              : `https://source.unsplash.com/random/400x200/?travel,${listing.country || 'vacation'}`;
+                          } catch {
+                            return listing.imageURL.startsWith('http') 
+                              ? listing.imageURL 
+                              : `https://source.unsplash.com/random/400x200/?travel,${listing.country || 'vacation'}`;
+                          }
+                        })()
+                      : `https://source.unsplash.com/random/400x200/?travel,${listing.country || 'vacation'}`
+                  }
+                  alt={listing.title}
+                  sx={{ objectFit: 'cover' }}
+                />
+                <CardContent sx={{ flexGrow: 1 }}>
+                  <Typography gutterBottom variant="h6" component="h2" noWrap>
+                    {listing.title || 'Untitled Listing'}
+                  </Typography>
+                  
+                  {listing.country && (
+                    <Chip
+                      label={listing.country}
+                      size="small"
+                      color="primary"
+                      sx={{ mb: 1 }}
+                    />
+                  )}
+                  
+                  <Typography variant="body2" color="text.secondary" paragraph>
+                    {listing.description 
+                      ? (listing.description.length > 100
+                        ? `${listing.description.substring(0, 100)}...`
+                        : listing.description)
+                      : 'No description available'}
+                  </Typography>
+                  
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 'auto' }}>
+                    <Typography variant="h6" color="primary">
+                      {formatCurrency(listing.price)}
+                    </Typography>
+                    {listing.travelPeriod && (
+                      <Typography variant="body2" color="text.secondary">
+                        {listing.travelPeriod}
+                      </Typography>
+                    )}
+                  </Box>
+                </CardContent>
+                <Box sx={{ p: 2, pt: 0 }}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    onClick={() => navigate(`/travel/${listing.travelID}/itineraries`)}
+                  >
+                    View Details
+                  </Button>
+                  <Button
+  fullWidth
+  variant="contained"
+  onClick={() => {
+    setSelectedTravel(listing);
+    setModalOpen(true);
+  }}
+>
+  View Itineraries
+</Button>
+                </Box>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+
+        {filteredListings.length === 0 && !loading && (
+          <Box sx={{ textAlign: 'center', py: 4 }}>
+            <Typography variant="h6" color="text.secondary">
+              {searchTerm ? 'No matching travel listings found' : 'No travel listings available'}
+            </Typography>
+            {searchTerm && (
+              <Button 
+                variant="text" 
+                onClick={() => setSearchTerm('')}
+                sx={{ mt: 1 }}
+              >
+                Clear search to see all listings
+              </Button>
+            )}
+          </Box>
+        )}
+
+        {!loading && filteredListings.length > 0 && (
+          <Box sx={{ mt: 4, textAlign: 'center' }}>
+            <Typography variant="body2" color="text.secondary">
+              Showing {filteredListings.length} of {listings.length} listings
+            </Typography>
+            <Button 
+              variant="outlined" 
+              onClick={fetchListings}
+              sx={{ mt: 1 }}
+            >
+              Refresh List
+            </Button>
+          </Box>
+        )}
+
+{/* Add modal at bottom of component */}
+{selectedTravel && (
+  <ItineraryModal
+    open={modalOpen}
+    onClose={() => setModalOpen(false)}
+    travelId={selectedTravel.travelID}
+    travelTitle={selectedTravel.title}
+  />
+)}
+      </Box>
+    </Container>
+  );
+
+  
+};
+
+export default TravelListings;
