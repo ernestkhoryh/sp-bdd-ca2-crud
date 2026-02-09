@@ -1,8 +1,13 @@
+// frontend\src\services\api.js
+
+
 import axios from 'axios';
+// import dotenv from 'dotenv';
+// dotenv.config();
 
 // Create axios instance with base URL
-const api = axios.create({
-  baseURL: 'http://52.55.35.68',
+export const api = axios.create({
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3000',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -53,7 +58,7 @@ api.interceptors.response.use(
 
 // Auth services
 export const authService = {
-  login: async (credentials) => {
+  loginModelByCred: async (credentials) => {
     console.log('AuthService: Login attempt with', credentials.email);
     
     // Ensure we're sending the right structure
@@ -90,16 +95,16 @@ export const authService = {
 
 // User services
 export const userService = {
-  getAllUsers: () => api.get('/user'),
-  getUserById: (id) => api.get(`/user/${id}`),
+  readAllUsers: () => api.get('/user'),
+  readUserByUserid: (id) => api.get(`/user/${id}`),
   createUser: (userData) => api.post('/user', userData),
-  updateUser: (id, userData) => api.put(`/user/${id}`, userData),
-  deleteUser: (id) => api.delete(`/user/${id}`),
+  updateUserByUserid: (id, userData) => api.put(`/user/${id}`, userData),
+  dropUserByUserid: (id) => api.delete(`/user/${id}`),
 };
 
 // Travel services
 export const travelService = {
-  getAllListings: async () => {
+  readAllTravelListings: async () => {
     console.log('TravelService: Fetching all listings');
     try {
       const response = await api.get('/travel-listings');
@@ -111,10 +116,10 @@ export const travelService = {
     }
   },
   
-  getListingById: (id) => api.get(`/travel-listings/${id}`),
-  getItineraries: (travelId) => api.get(`/travel-listings/${travelId}/itineraries`),
+  readTravelListingByTravelid: async (travelid) => api.get(`/travel-listings/${travelid}`),
+  readItinerariesbyTravelid: async (travelid) => api.get(`/travel-listings/${travelid}/itineraries`),
   
-  searchListings: async (query) => {
+  searchTravelListings: async (query) => {
     console.log('TravelService: Searching for', query);
     try {
       // Try different endpoints based on your backend
@@ -126,6 +131,50 @@ export const travelService = {
       throw error;
     }
   },
+  
 };
 
-export default api;
+// Add this new service
+export const adminService = {
+  // Create travel listing
+  createTravelListing: async (listingData) => {
+    console.log('AdminService: Creating travel listing', listingData);
+    
+    try {
+      const response = await api.post('/travel-listings', listingData);
+      console.log('AdminService: Travel listing created', response.data);
+      return response;
+    } catch (error) {
+      console.error('AdminService: Error creating travel listing', error);
+      throw error;
+    }
+  },
+
+  // Update travel listing
+  updateTravelListingByTravelid: async (travelid, listingData) => {
+    console.log('AdminService: Updating travel listing', { travelid, listingData });
+    
+    try {
+      const response = await api.put(`/travel-listings/${travelid}`, listingData);
+      console.log('AdminService: Travel listing updated', response.data);
+      return response;
+    } catch (error) {
+      console.error('AdminService: Error updating travel listing', error);
+      throw error;
+    }
+  },
+
+  // Delete travel listing
+  dropTravelListingByTravelid: async (travelid) => {
+    console.log('AdminService: Deleting travel listing', travelid);
+    
+    try {
+      const response = await api.delete(`/travel-listings/${travelid}`);
+      console.log('AdminService: Travel listing deleted', response.data);
+      return response;
+    } catch (error) {
+      console.error('AdminService: Error deleting travel listing', error);
+      throw error;
+    }
+  }
+};

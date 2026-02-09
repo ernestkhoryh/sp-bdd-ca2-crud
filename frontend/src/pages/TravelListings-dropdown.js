@@ -46,7 +46,7 @@ const TravelListings = () => {
   const fetchListings = async () => {
     try {
       setLoading(true);
-      const response = await travelService.getAllListings();
+      const response = await travelService.readAllTravelListings();
       const data = Array.isArray(response.data) ? response.data : [];
       setListings(data);
       setFilteredListings(data);
@@ -112,7 +112,7 @@ const TravelListings = () => {
               {filteredListings.length === 0 ? 'No packages available' : 'Choose a package...'}
             </MenuItem>
             {filteredListings.map((listing) => (
-              <MenuItem key={listing.travelID} value={listing.travelID}>
+              <MenuItem key={listing.travelid} value={listing.travelid}>
                 {listing.title || 'Untitled'} - {listing.country || 'Unknown'} ({formatCurrency(listing.price)})
               </MenuItem>
             ))}

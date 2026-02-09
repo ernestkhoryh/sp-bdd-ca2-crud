@@ -42,7 +42,7 @@ const TravelDropdown = ({
       const filtered = listings.filter(listing =>
         (listing.title && listing.title.toLowerCase().includes(searchLower)) ||
         (listing.location && listing.location.toLowerCase().includes(searchLower)) ||
-        (listing.travelID && listing.travelID.toString().includes(searchTerm)) ||
+        (listing.travelid && listing.travelid.toString().includes(searchTerm)) ||
         (listing.description && listing.description.toLowerCase().includes(searchLower))
       );
       setFilteredListings(filtered);
@@ -54,13 +54,13 @@ const TravelDropdown = ({
   const fetchListings = async () => {
     try {
       setLoading(true);
-      const response = await travelService.getAllListings();
+      const response = await travelService.readAllTravelListings();
       const data = response.data.data || response.data || [];
       
       // Sort by TravelID
       const sortedData = data.sort((a, b) => {
-        if (a.travelID && b.travelID) {
-          return a.travelID - b.travelID;
+        if (a.travelid && b.travelid) {
+          return a.travelid - b.travelid;
         }
         return 0;
       });
@@ -78,7 +78,7 @@ const TravelDropdown = ({
   const handleChange = (event) => {
     const selectedId = event.target.value;
     const selectedListing = listings.find(listing => 
-      listing.travelID === selectedId || listing.id === selectedId
+      listing.travelid === selectedId || listing.id === selectedId
     );
     
     if (onChange) {
@@ -101,7 +101,7 @@ const TravelDropdown = ({
   const getListingDisplay = (listing) => {
     if (!listing) return '';
     
-    const id = listing.travelID || listing.id;
+    const id = listing.travelid || listing.id;
     const title = listing.title || 'Untitled';
     const location = listing.location ? ` - ${listing.location}` : '';
     
@@ -185,7 +185,7 @@ const TravelDropdown = ({
             </MenuItem>
           ) : (
             filteredListings.map((listing) => {
-              const id = listing.travelID || listing.id;
+              const id = listing.travelid || listing.id;
               return (
                 <MenuItem key={id} value={id}>
                   {getListingDisplay(listing)}
@@ -210,7 +210,7 @@ const TravelDropdown = ({
           </Typography>
           {(() => {
             const selected = listings.find(l => 
-              (l.travelID || l.id) === value
+              (l.travelid || l.id) === value
             );
             
             if (!selected) return null;

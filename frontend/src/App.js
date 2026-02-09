@@ -56,7 +56,7 @@ function App() {
     <Route path="travel-listings" element={<TravelListings />} />
     <Route path="travel/select" element={<TravelSelection />} />
     <Route path="user" element={<ProtectedRoute requireAdmin><Users /></ProtectedRoute>} />
-    <Route path="travel-listings/:travelId/itineraries" element={<Itineraries />} />
+    <Route path="travel-listings/:travelid/itineraries" element={<Itineraries />} />
   </Route>
   
   <Route path="*" element={<Navigate to="/" replace />} />

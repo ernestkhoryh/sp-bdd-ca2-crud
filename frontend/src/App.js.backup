@@ -58,7 +58,7 @@ function App() {
                 </ProtectedRoute>
               } 
             />
-            <Route path="travel-listings/:travelId/itineraries" element={<Itineraries />} />
+            <Route path="travel-listings/:travelid/itineraries" element={<Itineraries />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

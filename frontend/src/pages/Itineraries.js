@@ -32,7 +32,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { travelService } from '../services/api';
 
 const Itineraries = () => {
-  const { travelId } = useParams();
+  const { travelid } = useParams();
   const navigate = useNavigate();
   const [travelListing, setTravelListing] = useState(null);
   const [itineraries, setItineraries] = useState([]);
@@ -45,11 +45,11 @@ const Itineraries = () => {
         setLoading(true);
         
         // Fetch travel details
-        const travelResponse = await travelService.getListingById(travelId);
+        const travelResponse = await travelService.readTravelListingByTravelid(travelid);
         setTravelListing(travelResponse.data);
         
         // Fetch itineraries
-        const itinerariesResponse = await travelService.getItineraries(travelId);
+        const itinerariesResponse = await travelService.readItineraries(travelid);
         setItineraries(itinerariesResponse.data || []);
         
       } catch (err) {
@@ -61,7 +61,7 @@ const Itineraries = () => {
     };
 
     fetchData();
-  }, [travelId]);
+  }, [travelid]);
 
   const formatCurrency = (amount) => {
     if (!amount) return 'N/A';
@@ -76,8 +76,8 @@ const Itineraries = () => {
   };
 
   const handleEditItinerary = (itineraryId) => {
-    alert(`Edit itinerary ${itineraryId} for travel ${travelId}`);
-    // navigate(`/travel/${travelId}/itinerary/${itineraryId}/edit`);
+    alert(`Edit itinerary ${itineraryId} for travel ${travelid}`);
+    // navigate(`/travel/${travelid}/itinerary/${itineraryId}/edit`);
   };
 
   const handleDeleteItinerary = (itineraryId) => {
@@ -88,8 +88,8 @@ const Itineraries = () => {
   };
 
   const handleAddItinerary = () => {
-    alert(`Add new itinerary for travel ${travelId}`);
-    // navigate(`/travel/${travelId}/itinerary/new`);
+    alert(`Add new itinerary for travel ${travelid}`);
+    // navigate(`/travel/${travelid}/itinerary/new`);
   };
 
   if (loading && !travelListing) {
@@ -166,7 +166,7 @@ const Itineraries = () => {
               
               <Box>
                 <Typography variant="h6" color="primary" gutterBottom>
-                  Travel ID: {travelId}
+                  Travel ID: {travelid}
                 </Typography>
               </Box>
             </Box>

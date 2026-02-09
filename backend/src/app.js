@@ -1,3 +1,4 @@
+// \backend\src\app.js
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -23,6 +24,8 @@ const app = express();
 console.log('adminController:', adminController);
 console.log('typeof getAllUsers:', typeof adminController.getAllUsers);
 
+app.use(express.json());  // Built-in Express JSON parser
+app.use(express.urlencoded({ extended: true }));
 
 app.use(cors({
   origin: ['http://localhost:3001', 'http://localhost:3000'],
@@ -30,20 +33,27 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
+
 app.options('*', cors()); // include before other routes
 
 
-// var urlencodedParser = bodyParser.urlencoded({ extended: false });
-// app.use(urlencodedParser);//attach body-parser middleware
-// app.use(bodyParser.json());//parse json data
 
-// Replace with this:
-app.use(express.json());  // Built-in Express JSON parser
-app.use(express.urlencoded({ extended: true }));
+// After your CORS configuration, add this:
+app.use((req, res, next) => {
+  // Allow all origins during development
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
 
-// Then CORS
-app.use(cors());
 
+//-----Routes--------------
 
 app.get('/', function (req, res) {
     res.send("This confirms your webserver is running");
@@ -122,12 +132,45 @@ app.get('/travel-listings/:travelID',
     publicController.getTravelListingByTravelid  // Just reference the controller method
 );
 
+app.post('/travel-listings', 
+    authorizer.verifyToken,
+    adminController.postTravelListing  // ← This will work after export
+);
+
+app.put('/travel-listings/:travelID', 
+    authorizer.verifyToken,
+    validate.validateIntID('travelID'),
+    adminController.putTravelListingByTravelid  // ← This will work after export
+);
+
+app.delete('/travel-listings/:travelID', 
+    authorizer.verifyToken,
+    validate.validateIntID('travelID'),
+    adminController.delTravelListingByTravelid  // ← This will work after export
+);
 
 console.log('validate:', validate);
 console.log('validateInsertion:', validate.validateInsertion);
 console.log('publicController:', publicController);
 console.log('loginControl:', adminController.loginControl);
 
-
+// TEMPORARY: Debug route to see what routes are registered
+app.get('/debug-routes', (req, res) => {
+  const routes = [];
+  app._router.stack.forEach((middleware) => {
+    if (middleware.route) {
+      routes.push({
+        path: middleware.route.path,
+        methods: Object.keys(middleware.route.methods).map(m => m.toUpperCase())
+      });
+    }
+  });
+  
+  res.json({
+    routes: routes,
+    loginFunctionExists: !!adminController.loginControl,
+    loginRouteExpected: '/user/login'
+  });
+});
 // Export the app for use in other files (like server.js)
 module.exports = app;

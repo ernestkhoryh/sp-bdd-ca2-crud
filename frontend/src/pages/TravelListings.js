@@ -1,3 +1,5 @@
+// \frontend\src\pages\TravelListings.js
+
 import React, { useState, useEffect } from 'react';
 import {
   Container,
@@ -26,6 +28,13 @@ const TravelListings = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Reset selection if the selected ID is no longer in the listings
+    if (selectedId && !listings.some(l => l.travelid === selectedId)) {
+      setSelectedId('');
+    }
+  }, [listings, selectedId]);
+
+  useEffect(() => {
     fetchListings();
   }, []);
 
@@ -46,7 +55,7 @@ const TravelListings = () => {
   const fetchListings = async () => {
     try {
       setLoading(true);
-      const response = await travelService.getAllListings();
+      const response = await travelService.readAllTravelListings();
       const data = Array.isArray(response.data) ? response.data : [];
       setListings(data);
       setFilteredListings(data);
@@ -105,14 +114,17 @@ const TravelListings = () => {
           <Select
             value={selectedId}
             label="Select Travel Package"
-            onChange={(e) => setSelectedId(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              setSelectedId(value === undefined ? '' : value);
+            }}
             disabled={filteredListings.length === 0 || loading}
           >
             <MenuItem value="" disabled>
               {filteredListings.length === 0 ? 'No packages available' : 'Choose a package...'}
             </MenuItem>
             {filteredListings.map((listing) => (
-              <MenuItem key={listing.travelID} value={listing.travelID}>
+              <MenuItem key={listing.travelid} value={listing.travelid || ''} >
                 {listing.title || 'Untitled'} - {listing.country || 'Unknown'} ({formatCurrency(listing.price)})
               </MenuItem>
             ))}

@@ -21,7 +21,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 
 const TravelSelection = () => {
-  const [selectedTravelId, setSelectedTravelId] = useState('');
+  const [selectedTravelid, setSelectedTravelid] = useState('');
   const [selectedListing, setSelectedListing] = useState(null);
   const [recentSelections, setRecentSelections] = useState([]);
 
@@ -32,7 +32,7 @@ const TravelSelection = () => {
     if (listing) {
       setRecentSelections(prev => {
         const filtered = prev.filter(item => 
-          (item.travelID || item.id) !== (listing.travelID || listing.id)
+          (item.travelid || item.id) !== (listing.travelid || listing.id)
         );
         return [listing, ...filtered].slice(0, 5);
       });
@@ -40,17 +40,17 @@ const TravelSelection = () => {
   };
 
   const handleViewItineraries = () => {
-    if (selectedTravelId) {
-      alert(`View itineraries for Travel ID: ${selectedTravelId}`);
+    if (selectedTravelid) {
+      alert(`View itineraries for Travel ID: ${selectedTravelid}`);
       // In real app: navigate to itineraries page
-      // navigate(`/travel/${selectedTravelId}/itineraries`);
+      // navigate(`/travel/${selectedTravelid}/itineraries`);
     }
   };
 
   const handleEditTravel = () => {
-    if (selectedTravelId) {
-      alert(`Edit travel listing: ${selectedTravelId}`);
-      // navigate(`/admin/travel/${selectedTravelId}/edit`);
+    if (selectedTravelid) {
+      alert(`Edit travel listing: ${selectedTravelid}`);
+      // navigate(`/admin/travel/${selectedTravelid}/edit`);
     }
   };
 
@@ -84,8 +84,8 @@ const TravelSelection = () => {
               
               <TravelDropdown
                 label="Travel Listing"
-                value={selectedTravelId}
-                onChange={(e) => setSelectedTravelId(e.target.value)}
+                value={selectedTravelid}
+                onChange={(e) => setSelectedTravelid(e.target.value)}
                 onSelect={handleTravelSelect}
                 required
                 showSearch={true}
@@ -165,14 +165,14 @@ const TravelSelection = () => {
                     <Button 
                       variant="contained" 
                       onClick={handleViewItineraries}
-                      disabled={!selectedTravelId}
+                      disabled={!selectedTravelid}
                     >
                       View Itineraries
                     </Button>
                     <Button 
                       variant="outlined" 
                       onClick={handleEditTravel}
-                      disabled={!selectedTravelId}
+                      disabled={!selectedTravelid}
                     >
                       Edit Listing
                     </Button>
@@ -208,7 +208,7 @@ const TravelSelection = () => {
                   variant="outlined" 
                   fullWidth
                   onClick={() => {
-                    setSelectedTravelId('');
+                    setSelectedTravelid('');
                     setSelectedListing(null);
                   }}
                 >
@@ -225,7 +225,7 @@ const TravelSelection = () => {
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {recentSelections.map((listing) => {
-                    const id = listing.travelID || listing.id;
+                    const id = listing.travelid || listing.id;
                     return (
                       <Card key={id} variant="outlined">
                         <CardContent sx={{ p: 2 }}>
@@ -251,7 +251,7 @@ const TravelSelection = () => {
                             size="small" 
                             fullWidth
                             onClick={() => {
-                              setSelectedTravelId(id);
+                              setSelectedTravelid(id);
                               setSelectedListing(listing);
                             }}
                           >

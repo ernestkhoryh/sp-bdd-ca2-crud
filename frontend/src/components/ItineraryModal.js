@@ -23,72 +23,47 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PlaceIcon from '@mui/icons-material/Place';
 import { travelService } from '../services/api';
 
-const ItineraryModal = ({ open, onClose, travelId, travelTitle }) => {
+const ItineraryModal = ({ open, onClose, travelid, travelTitle }) => {
   const [itineraries, setItineraries] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    const fetchItineraries = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        // FIX: Use the correct API method for itineraries
+        const response = await travelService.readItinerariesbyTravelid(travelid);
+        
+        // Handle different response structures
+        if (response && response.data) {
+          // Check if data is array or object with data property
+          const data = Array.isArray(response.data) 
+            ? response.data 
+            : (response.data.data || []);
+          
+          setItineraries(data);
+        } else {
+          setItineraries([]);
+        }
+      } catch (err) {
+        console.error('Failed to fetch itineraries:', err);
+        setError('Failed to load itineraries. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-
-  const fetchItineraries = async () => {
-
-    try {
-    setLoading(true);
-    setError('');
-      const response = await travelService.getItinerariesByTravelId(travelId);
-      setItineraries(response.data);
-
-      
-      // For now, using mock data
-  //     setTimeout(() => {
-  //       const mockItineraries = [
-  //         { 
-  //           id: 1, 
-  //           day: 'Day 1', 
-  //           title: 'Arrival & Welcome', 
-  //           description: 'Arrive at destination and get settled',
-  //           activities: ['Airport pickup', 'Hotel check-in', 'Welcome briefing', 'Group dinner'],
-  //           time: 'Full day',
-  //           location: 'Main City'
-  //         },
-  //         { 
-  //           id: 2, 
-  //           day: 'Day 2', 
-  //           title: 'City Exploration', 
-  //           description: 'Discover the main attractions of the city',
-  //           activities: ['Historic district tour', 'Museum visit', 'Local market', 'Cultural performance'],
-  //           time: '9:00 AM - 6:00 PM',
-  //           location: 'City Center'
-  //         },
-  //         { 
-  //           id: 3, 
-  //           day: 'Day 3', 
-  //           title: 'Nature Adventure', 
-  //           description: 'Explore natural wonders and outdoor activities',
-  //           activities: ['Mountain hiking', 'Waterfall visit', 'Picnic lunch', 'Wildlife spotting'],
-  //           time: '8:00 AM - 5:00 PM',
-  //           location: 'National Park'
-  //         },
-  //       ];
-  //       setItineraries(mockItineraries);
-  //       setLoading(false);
-  //     }, 1000);
-    } catch (err) {
-      console.error('Failed to fetch itineraries:', err);
-      setError('Failed to load itineraries. Please try again.');
-      // setLoading(false);
-    }
-  };
-    if (open) {
+    if (open && travelid) {
       fetchItineraries();
     }
-  }, [open, travelId]);
+  }, [open, travelid]);
 
   const handleViewFullDetails = () => {
     onClose();
     // Navigate to full itinerary page
-    window.location.href = `/travel/${travelId}/itineraries`;
+    window.location.href = `/travel/${travelid}/itineraries`;
   };
 
   return (
@@ -100,7 +75,7 @@ const ItineraryModal = ({ open, onClose, travelId, travelTitle }) => {
               {travelTitle || 'Travel Package'}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Travel ID: {travelId}
+              Travel ID: {travelid}
             </Typography>
           </Box>
           <IconButton

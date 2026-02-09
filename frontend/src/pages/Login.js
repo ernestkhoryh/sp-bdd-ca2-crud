@@ -1,3 +1,6 @@
+// \frontend\src\pages\Login.js
+
+import {api} from '../services/api.js';
 import React, { useState } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
@@ -15,6 +18,12 @@ import { authService } from '../services/api'; // For login API call
 import { getCurrentUser } from '../utils/auth'; // For getting user after login
 
 const Login = () => {
+
+  // Add this debug log at the very beginning
+  console.log('Login component rendered');
+  console.log('REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
+  
+
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
@@ -36,10 +45,18 @@ const Login = () => {
     setLoading(true);
     setError('');
 
+
+// In your handleSubmit function, add this at the beginning:
+console.log('REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
+console.log('Current API base URL:', api.defaults.baseURL);    
+
+    
     console.log('Login attempt with:', { 
       email: formData.email, 
       passwordLength: formData.password.length 
     });
+
+
 
     try {
       const response = await authService.login(formData);
