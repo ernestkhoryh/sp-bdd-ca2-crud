@@ -143,19 +143,19 @@ const loginModelByCred = async (identifier, password) => {
   return jwt.sign(payload, config.secretKey, { expiresIn: '24h' });
 };
 
-// =========== TRAVEL LISTING MODEL FUNCTIONS (DATABASE OPERATIONS ONLY) ===========
+// =========== TRAVEL-LISTING MODEL FUNCTIONS (DATABASE OPERATIONS ONLY) ===========
 
 // Create travel listing
 const createTravelListing = async (title, description, country, travelPeriod, price, imageURL) => {
   const [result] = await db.query(
-    'INSERT INTO travel_listing (title, description, country, travelPeriod, price, imageURL, dateInserted) VALUES (?, ?, ?, ?, ?, ?, NOW())',
+    'INSERT INTO travel_listing (title, description, country, travelPeriod, price, imageURL) VALUES (?, ?, ?, ?, ?, ?)',
     [title, description, country, travelPeriod, price, imageURL]
   );
   return result;
 };
 
 // Update travel listing
-const updateTravelListingByTravelid = async (travelID, title, description, country, travelPeriod, price, imageURL, dateInserted) => {
+const updateTravelListingByTravelid = async (travelID, title, description, country, travelPeriod, price, imageURL) => {
   const [result] = await db.query(
     'UPDATE travel_listing SET title = ?, description = ?, country = ?, travelPeriod = ?, price = ?, imageURL = ? WHERE travelID = ?',
     [title, description, country, travelPeriod, price, imageURL, travelID]
@@ -172,16 +172,90 @@ const dropTravelListingByTravelid = async (travelID) => {
   return result;
 };
 
-module.exports = {
-  readAllUsers,
-  readUserByUserid,
-  createUser,
-  updateUserByUserid,
-  dropUserByUserid,
-  loginModelByCred,
+
+// =========== ITINERARY MODEL FUNCTIONS (DATABASE OPERATIONS ONLY) ===========
+
+// Read All Itineraries
+
+// Read all itineraries
+const readAllItineraries = async () => {
+  const [rows] = await db.query(
+    `SELECT itineraryID, travelID, day, activity
+     FROM itinerary
+     ORDER BY travelID ASC, day ASC`
+  );
+
+  return rows;};
+
+const readItineraryByItineraryid = async (ItineraryID)=> {
+  const [rows] = await db.query(
+    `SELECT itineraryID, travelID, day, activity
+     FROM itinerary
+     WHERE itineraryID = ?`,[ItineraryID]
+  );
+  return rows[0];
+};
+
+
+// Create Itinerary
+const createItineraryByTravelid = async(travelID, data) => {
+  const [result] = await db.query(
+    'INSERT INTO itinerary (travelID, day, activity) VALUES (?,?,?)',
+            [travelID, data.day, JSON.stringify(data.activity)]
+           );
+  return result;
+};
+
+// Update itinerary - DEBUGGED MODEL FUNCTION
+const updateItineraryByItineraryid = async (itineraryID, data) => {
+  console.log('=== DEBUG MODEL FUNCTION ===');
+  console.log('itineraryID:', itineraryID);
+  console.log('data object:', data);
+  console.log('Values being passed to query:', {
+    travelID: data.travelID,
+    day: data.day,
+    activity: data.activity,
+    itineraryID: itineraryID
+  });
   
-  // Travel listing functions
-  createTravelListing,
-  updateTravelListingByTravelid,
-  dropTravelListingByTravelid
+  const [result] = await db.query(
+    'UPDATE itinerary SET travelID = ?, day = ?, activity = ? WHERE itineraryID = ?',
+    [data.travelID, data.day, data.activity, itineraryID]
+  );
+  
+  console.log('Query executed successfully');
+  return result;
+};
+
+// Delete travel listing
+const dropItineraryByItineraryid = async (itineraryID) => {
+  const [result] = await db.query(
+    'DELETE FROM itinerary WHERE itineraryID = ?',
+    [itineraryID]
+  );
+  return result;
+};
+
+module.exports = {
+
+// Travel-listing functions
+readAllUsers,
+readUserByUserid,
+createUser,
+updateUserByUserid,
+dropUserByUserid,
+loginModelByCred,
+
+// Travel-listing functions
+createTravelListing,
+updateTravelListingByTravelid,
+dropTravelListingByTravelid,
+
+// Itinerary functions
+readAllItineraries,
+readItineraryByItineraryid,
+createItineraryByTravelid,
+updateItineraryByItineraryid,
+dropItineraryByItineraryid
+
 };

@@ -23,6 +23,9 @@ const app = express();
 
 console.log('adminController:', adminController);
 console.log('typeof getAllUsers:', typeof adminController.getAllUsers);
+console.log('authorizer type:', typeof authorizer);
+console.log('authorizer.verifyToken:', typeof authorizer.verifyToken);
+
 
 app.use(express.json());  // Built-in Express JSON parser
 app.use(express.urlencoded({ extended: true }));
@@ -93,7 +96,7 @@ app.put('/user/:userid',
 //DELETE /user/:userid - Admin/Protected route
 app.delete('/user/:userid', 
     validate.validateIntID('userid'),
-    authorizer.verifyToken,
+    authorizer.verifyToken ,
     adminController.delUserByUserid
 );
 
@@ -112,49 +115,70 @@ app.get('/test-token', authenticateToken, adminController.testToken);
 //----Travel-Listings-Routes--------------
 
 //GET /travel-listings/
-// CORRECT: Just pass the controller function
 app.get('/travel-listings', 
     publicController.getAllTravelListings);
 
-
 // GET /travel-listings/search
 app.get('/travel-listings/search', 
-    publicController.findTravelListings
+    publicController.findTravellistingsByDescriptionSubstring
 );
 
 // GET /travel-listings/:travelID/itineraries
 app.get('/travel-listings/:travelID/itineraries', 
-    publicController.getItinerariesByTravelid  // Let Express handle it
+    publicController.getItinerariesByTravelid  
 );
 
 // GET /travel-listings/:travelID
 app.get('/travel-listings/:travelID', 
-    publicController.getTravelListingByTravelid  // Just reference the controller method
+    publicController.getTravelListingByTravelid 
 );
 
 app.post('/travel-listings', 
     authorizer.verifyToken,
-    adminController.postTravelListing  // ← This will work after export
+    adminController.postTravelListing  
 );
 
 app.put('/travel-listings/:travelID', 
     authorizer.verifyToken,
     validate.validateIntID('travelID'),
-    adminController.putTravelListingByTravelid  // ← This will work after export
+    adminController.putTravelListingByTravelid  
 );
 
 app.delete('/travel-listings/:travelID', 
     authorizer.verifyToken,
     validate.validateIntID('travelID'),
-    adminController.delTravelListingByTravelid  // ← This will work after export
+    adminController.delTravelListingByTravelid  
 );
 
-console.log('validate:', validate);
-console.log('validateInsertion:', validate.validateInsertion);
-console.log('publicController:', publicController);
-console.log('loginControl:', adminController.loginControl);
+//----Itineraries-Routes--------------
 
-// TEMPORARY: Debug route to see what routes are registered
+//GET /itineraries/
+app.get('/itineraries', 
+    adminController.getAllItineraries);
+
+app.get('/itineraries/:itineraryID',
+    adminController.getItineraryByItineraryid);
+
+app.put('/itineraries/:itineraryID', 
+    authorizer.verifyToken,
+    validate.validateIntID('itineraryID'),
+    adminController.putItineraryByItineraryid
+);
+
+app.post('/travel-listings/:travelID/itinerary', 
+    authorizer.verifyToken,
+    validate.validateIntID('travelID'),
+    adminController.postItineraryByTravelid 
+);
+
+app.delete('/itineraries/:itineraryID', 
+    authorizer.verifyToken,
+    validate.validateIntID('itineraryID'),
+    adminController.delItineraryByItineraryid
+);
+
+//------Debug-route-------------------------
+
 app.get('/debug-routes', (req, res) => {
   const routes = [];
   app._router.stack.forEach((middleware) => {
@@ -172,5 +196,10 @@ app.get('/debug-routes', (req, res) => {
     loginRouteExpected: '/user/login'
   });
 });
-// Export the app for use in other files (like server.js)
+
+console.log('validate:', validate);
+console.log('validateInsertion:', validate.validateInsertion);
+console.log('publicController:', publicController);
+console.log('loginControl:', adminController.loginControl);
+
 module.exports = app;

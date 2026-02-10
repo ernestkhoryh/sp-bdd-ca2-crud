@@ -1,67 +1,49 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'; // Added Navigate
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-
-import Layout from './components/Layout';
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Users from './pages/Users';
-import Register from './pages/Register';
-import TravelListings from './pages/TravelListings';
-import TravelSelection from './pages/TravelSelection';
-import Itineraries from './pages/Itineraries';
-import { isAuthenticated, isAdmin } from './utils/auth';
-
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#1976d2',
-    },
-    secondary: {
-      main: '#dc004e',
-    },
-  },
-});
-
-// Protected Route Component
-const ProtectedRoute = ({ children, requireAdmin = false }) => {
-  const authenticated = isAuthenticated();
-  const admin = isAdmin();
-
-  if (!authenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (requireAdmin && !admin) {
-    return <Navigate to="/" replace />;
-  }
-
-  return children;
-};
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
+import Header from './components/layout/Header';
+import ProtectedRoute from './components/layout/ProtectedRoute';
+import HomePage from './pages/public/HomePage';
+import ListingDetail from './pages/public/ListingDetail';
+import SearchResults from './pages/public/SearchResults';
+import Login from './pages/admin/Login';
+import Dashboard from './pages/admin/Dashboard';
+import UsersManager from './pages/admin/UsersManager';
+import ListingsManager from './pages/admin/ListingsManager';
+import ItinerariesManager from './pages/admin/ItinerariesManager';
+import './App.css';
 
 function App() {
+  const { loading } = useAuth();
+
+  if (loading) {
+    return <div className="loading-screen">Loading...</div>;
+  }
+
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Router>
-<Routes>
-  {/* Routes WITHOUT Layout */}
-  <Route path="/login" element={<Login />} />
-  <Route path="/register" element={<Register />} />
-  
-  {/* Routes WITH Layout */}
-  <Route path="/" element={<Layout />}>
-    <Route index element={<Home />} />
-    <Route path="travel-listings" element={<TravelListings />} />
-    <Route path="travel/select" element={<TravelSelection />} />
-    <Route path="user" element={<ProtectedRoute requireAdmin><Users /></ProtectedRoute>} />
-    <Route path="travel-listings/:travelid/itineraries" element={<Itineraries />} />
-  </Route>
-  
-  <Route path="*" element={<Navigate to="/" replace />} />
-</Routes>      </Router>
-    </ThemeProvider>
+    <div className="App">
+      <Header />
+      <main className="container">
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/search" element={<SearchResults />} />
+          <Route path="/listings/:travelid" element={<ListingDetail />} />
+          
+          {/* Auth Routes */}
+          <Route path="/user/login" element={<Login />} />
+          
+          {/* Protected Admin Routes */}
+          <Route path="/user" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/user" element={<ProtectedRoute><UsersManager /></ProtectedRoute>} />
+          <Route path="/listings" element={<ProtectedRoute><ListingsManager /></ProtectedRoute>} />
+          <Route path="/itineraries" element={<ProtectedRoute><ItinerariesManager /></ProtectedRoute>} />
+          
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
+    </div>
   );
 }
 
