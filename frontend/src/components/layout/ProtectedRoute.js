@@ -7,7 +7,7 @@ const ProtectedRoute = ({ children }) => {
 
   if (loading) return <div>Loading...</div>;
   if (!token) {
-    return <Navigate to="/admin/login" state={{ from: location }} replace />;
+    return <Navigate to="/user/login" state={{ from: location }} replace />;
   }
   return children;
 };

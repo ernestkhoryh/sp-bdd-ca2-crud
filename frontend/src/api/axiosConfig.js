@@ -5,13 +5,16 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' }
 });
 
-// Request interceptor: Attach token to ADMIN requests only
+// Request interceptor: Attach token to authenticated requests (except login/register)
 api.interceptors.request.use(config => {
-  // Only add token to paths containing '/admin/'
-  if (config.url?.includes('/user/')) {
-    const token = localStorage.getItem('auth_token');
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+  const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token') || localStorage.getItem('token') || sessionStorage.getItem('token');
+  const isAuthOpenRoute = config.url?.includes('/user/login') || config.url?.includes('/user/register');
+
+  if (token && !isAuthOpenRoute) {
+    const normalizedToken = token.startsWith('Bearer ') ? token.slice(7) : token;
+    config.headers.Authorization = `Bearer ${normalizedToken}`;
   }
+
   return config;
 });
 
@@ -21,6 +24,9 @@ api.interceptors.response.use(
   error => {
     if (error.response?.status === 401) {
       localStorage.removeItem('auth_token');
+      localStorage.removeItem('token');
+      sessionStorage.removeItem('auth_token');
+      sessionStorage.removeItem('token');
       window.location.href = '/user/login?session=expired';
     }
     return Promise.reject(error);

@@ -5,6 +5,7 @@ import {
   Typography,
   List,
   ListItem,
+  ListItemButton,
   ListItemText,
   ListItemSecondaryAction,
   IconButton,
@@ -18,10 +19,10 @@ import {
   Divider,
   Tabs,
   Tab,
-  Grid
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon, Close as CloseIcon, Add as AddIcon } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
+import api from '../../api/axiosConfig';
 
 const ListingDetail = () => {
   const { travelid } = useParams();
@@ -43,23 +44,26 @@ const ListingDetail = () => {
 
   // Helper function for API calls
   const apiCall = async (url, options = {}) => {
-    const defaultOptions = {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      },
+    const method = (options.method || 'GET').toLowerCase();
+    const requestConfig = {
+      url,
+      method,
+      headers: options.headers || {},
     };
-    
-    const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000'}${url}`, {
-      ...defaultOptions,
-      ...options,
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}, message: ${response.statusText}`);
+
+    if (options.body !== undefined) {
+      requestConfig.data =
+        typeof options.body === 'string' ? JSON.parse(options.body) : options.body;
     }
     
-    return response.json();
+    try {
+      const response = await api.request(requestConfig);
+      return response.data;
+    } catch (error) {
+      const status = error.response?.status;
+      const statusText = error.response?.statusText || error.message;
+      throw new Error(`HTTP error! status: ${status}, message: ${statusText}`);
+    }
   };
 
   useEffect(() => {
@@ -245,24 +249,25 @@ const ListingDetail = () => {
         <List>
           {itineraries.map((itinerary) => (
             <React.Fragment key={itinerary.itineraryID}>
-              <ListItem 
-                button
-                onClick={() => handleItineraryClick(itinerary)}
-                sx={{ 
-                  border: '1px solid #e0e0e0', 
-                  borderRadius: 1, 
+              <ListItem
+                disablePadding
+                sx={{
+                  border: '1px solid #e0e0e0',
+                  borderRadius: 1,
                   mb: 1,
                   '&:hover': { backgroundColor: '#f5f5f5' }
                 }}
               >
-                <ListItemText
-                  primary={`Day ${itinerary.day}`}
-                  secondary={
-                    typeof itinerary.activity === 'string' 
-                      ? itinerary.activity 
-                      : JSON.stringify(itinerary.activity)
-                  }
-                />
+                <ListItemButton onClick={() => handleItineraryClick(itinerary)}>
+                  <ListItemText
+                    primary={`Day ${itinerary.day}`}
+                    secondary={
+                      typeof itinerary.activity === 'string'
+                        ? itinerary.activity
+                        : JSON.stringify(itinerary.activity)
+                    }
+                  />
+                </ListItemButton>
                 <ListItemSecondaryAction>
                   <IconButton 
                     edge="end" 

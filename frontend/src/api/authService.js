@@ -10,7 +10,12 @@ export const authService = {
   },
 
   verifyToken: async (token) => {
-    const response = await api.post('/authorization/verifyToken', { token });
+    const normalizedToken = token?.startsWith('Bearer ') ? token.slice(7) : token;
+    const response = await api.get('/test-token', {
+      headers: {
+        Authorization: `Bearer ${normalizedToken}`
+      }
+    });
     return response.data.user;
   },
 
