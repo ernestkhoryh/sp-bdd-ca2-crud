@@ -10,7 +10,7 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname || '/admin';
+  const from = location.state?.from?.pathname || '/user';
 
   const handleSubmit = async (e) => {
     e.preventDefault();

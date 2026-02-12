@@ -8,7 +8,7 @@ const Header = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/admin/login');
+    navigate('/user/login');
   };
 
   return (
@@ -21,9 +21,9 @@ const Header = () => {
         <nav>
           {user ? (
             <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-              <Link to="/admin" style={{ color: 'white', textDecoration: 'none' }}>Dashboard</Link>
-              <Link to="/admin/users" style={{ color: 'white', textDecoration: 'none' }}>Users</Link>
-              <Link to="/admin/listings" style={{ color: 'white', textDecoration: 'none' }}>Listings</Link>
+              <Link to="/user" style={{ color: 'white', textDecoration: 'none' }}>Dashboard</Link>
+              <Link to="/listings" style={{ color: 'white', textDecoration: 'none' }}>Listings</Link>
+              <Link to="/itineraries" style={{ color: 'white', textDecoration: 'none' }}>Itineraries</Link>
               <button 
                 onClick={handleLogout}
                 style={{ 

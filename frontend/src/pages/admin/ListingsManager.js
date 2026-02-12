@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { adminService } from '../../api/adminService';
 import ErrorMessage from '../../components/ui/ErrorMessage';
 
 const ListingsManager = () => {
+  const location = useLocation();
   const [editingListing, setEditingListing] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
@@ -12,9 +15,46 @@ const ListingsManager = () => {
     rating: ''
   });
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (location.state?.startCreate) {
+      setEditingListing('new');
+      setFormData({ title: '', description: '', location: '', price: '', duration_days: '', rating: '' });
+    }
+  }, [location.state]);
 
   const handleSave = async () => {
-    setError('Backend endpoint for travel listings CRUD not yet implemented');
+    setError(null);
+    setSuccessMessage('');
+    setSaving(true);
+
+    try {
+      const payload = {
+        title: formData.title?.trim(),
+        description: formData.description?.trim(),
+        country: formData.location?.trim(),
+        travelPeriod: formData.duration_days?.toString().trim(),
+        price: parseFloat(formData.price),
+        imageURL: 'https://placehold.co/600x400?text=Travel+Listing'
+      };
+
+      if (!payload.title || !payload.description || !payload.country || !payload.travelPeriod || Number.isNaN(payload.price)) {
+        setError('Please complete title, description, location, duration and price before saving.');
+        return;
+      }
+
+      await adminService.createTravelListing(payload);
+      setSuccessMessage('Travel listing created successfully.');
+      setEditingListing(null);
+      setFormData({ title: '', description: '', location: '', price: '', duration_days: '', rating: '' });
+    } catch (err) {
+      console.error('Error creating travel listing:', err);
+      setError(err.response?.data?.error?.message || err.response?.data?.error || err.message || 'Failed to create travel listing');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -31,6 +71,13 @@ const ListingsManager = () => {
           + Add Listing
         </button>
       </div>
+
+      {error && <ErrorMessage error={error} />}
+      {successMessage && (
+        <div className="card" style={{ background: '#e8f8ef', color: '#1d7a46', marginBottom: '1rem' }}>
+          {successMessage}
+        </div>
+      )}
 
       {editingListing && (
         <div className="card" style={{ marginBottom: '1.5rem' }}>
@@ -94,8 +141,8 @@ const ListingsManager = () => {
             </div>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-            <button onClick={handleSave} style={{ background: '#3498db', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px' }}>
-              Save
+            <button onClick={handleSave} disabled={saving} style={{ background: '#3498db', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', cursor: saving ? 'not-allowed' : 'pointer' }}>
+              {saving ? 'Saving...' : 'Save'}
             </button>
             <button onClick={() => setEditingListing(null)} style={{ background: '#e74c3c', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px' }}>
               Cancel

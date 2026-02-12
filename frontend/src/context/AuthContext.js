@@ -21,12 +21,16 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     const { token, user } = await authService.login(credentials); // Calls loginModelByCred
     localStorage.setItem('auth_token', token);
+    localStorage.setItem('token', token);
     setAuthState({ token, user, loading: false });
     return user;
   };
 
   const logout = () => {
     localStorage.removeItem('auth_token');
+    localStorage.removeItem('token');
+    sessionStorage.removeItem('auth_token');
+    sessionStorage.removeItem('token');
     setAuthState({ token: null, user: null, loading: false });
   };
 

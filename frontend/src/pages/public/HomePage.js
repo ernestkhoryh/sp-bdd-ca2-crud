@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { publicService } from '../../api/publicService';
+import { useAuth } from '../../context/AuthContext';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import ErrorMessage from '../../components/ui/ErrorMessage';
 
@@ -9,6 +10,8 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const { token, user } = useAuth();
 
   useEffect(() => {
     const loadListings = async () => {
@@ -43,6 +46,20 @@ const HomePage = () => {
     }
   };
 
+  const handleAddListing = () => {
+    if (!token) {
+      navigate('/user/login', { state: { from: location } });
+      return;
+    }
+
+    if (user?.role && user.role !== 'admin') {
+      navigate('/user/login', { state: { from: location } });
+      return;
+    }
+
+    navigate('/listings', { state: { startCreate: true } });
+  };
+
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage error={error} />;
 
@@ -69,6 +86,13 @@ const HomePage = () => {
             style={{ padding: '0.75rem 1.5rem', background: '#3498db', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
           >
             Search
+          </button>
+          <button
+            type="button"
+            onClick={handleAddListing}
+            style={{ padding: '0.75rem 1.5rem', background: '#2ecc71', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+          >
+            Add Listing
           </button>
         </form>
       </div>
