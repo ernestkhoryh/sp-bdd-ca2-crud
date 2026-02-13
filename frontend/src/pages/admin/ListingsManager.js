@@ -3,17 +3,18 @@ import { useLocation } from 'react-router-dom';
 import { adminService } from '../../api/adminService';
 import ErrorMessage from '../../components/ui/ErrorMessage';
 
+const EMPTY_FORM = {
+  title: '',
+  description: '',
+  location: '',
+  price: '',
+  duration_days: '',
+};
+
 const ListingsManager = () => {
   const location = useLocation();
   const [editingListing, setEditingListing] = useState(null);
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    location: '',
-    price: '',
-    duration_days: '',
-    rating: ''
-  });
+  const [formData, setFormData] = useState(EMPTY_FORM);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
   const [saving, setSaving] = useState(false);
@@ -21,11 +22,12 @@ const ListingsManager = () => {
   useEffect(() => {
     if (location.state?.startCreate) {
       setEditingListing('new');
-      setFormData({ title: '', description: '', location: '', price: '', duration_days: '', rating: '' });
+      setFormData(EMPTY_FORM);
     }
   }, [location.state]);
 
-  const handleSave = async () => {
+  const handleSave = async (e) => {
+    e?.preventDefault();
     setError(null);
     setSuccessMessage('');
     setSaving(true);
@@ -48,7 +50,7 @@ const ListingsManager = () => {
       await adminService.createTravelListing(payload);
       setSuccessMessage('Travel listing created successfully.');
       setEditingListing(null);
-      setFormData({ title: '', description: '', location: '', price: '', duration_days: '', rating: '' });
+      setFormData(EMPTY_FORM);
     } catch (err) {
       console.error('Error creating travel listing:', err);
       setError(err.response?.data?.error?.message || err.response?.data?.error || err.message || 'Failed to create travel listing');
@@ -64,7 +66,7 @@ const ListingsManager = () => {
         <button
           onClick={() => {
             setEditingListing('new');
-            setFormData({ title: '', description: '', location: '', price: '', duration_days: '', rating: '' });
+            setFormData(EMPTY_FORM);
           }}
           style={{ background: '#2ecc71', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', cursor: 'pointer' }}
         >
@@ -80,7 +82,7 @@ const ListingsManager = () => {
       )}
 
       {editingListing && (
-        <div className="card" style={{ marginBottom: '1.5rem' }}>
+        <form className="card" style={{ marginBottom: '1.5rem' }} onSubmit={handleSave}>
           <h3>{editingListing === 'new' ? 'Create New Listing' : 'Edit Listing'}</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
             <div>
@@ -127,28 +129,16 @@ const ListingsManager = () => {
                 style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem', resize: 'vertical' }}
               />
             </div>
-            <div>
-              <label>Rating (1-5)</label>
-              <input
-                type="number"
-                min="1"
-                max="5"
-                step="0.1"
-                value={formData.rating}
-                onChange={(e) => setFormData(prev => ({ ...prev, rating: e.target.value }))}
-                style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
-              />
-            </div>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-            <button onClick={handleSave} disabled={saving} style={{ background: '#3498db', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', cursor: saving ? 'not-allowed' : 'pointer' }}>
+            <button type="submit" disabled={saving} style={{ background: '#3498db', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', cursor: saving ? 'not-allowed' : 'pointer' }}>
               {saving ? 'Saving...' : 'Save'}
             </button>
-            <button onClick={() => setEditingListing(null)} style={{ background: '#e74c3c', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px' }}>
+            <button type="button" onClick={() => setEditingListing(null)} style={{ background: '#e74c3c', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px' }}>
               Cancel
             </button>
           </div>
-        </div>
+        </form>
       )}
 
       <div className="card">
